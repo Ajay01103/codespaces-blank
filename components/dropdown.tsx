@@ -1,11 +1,18 @@
-import React from "react"
-import { StyleSheet, View, Text, Pressable, Modal, TouchableOpacity } from "react-native"
+import React, { useRef } from "react"
+import { StyleSheet, View, Text, TouchableOpacity, Pressable } from "react-native"
 import { Feather } from "@expo/vector-icons"
 import RoundBtn from "./RoundBtn"
+import Animated, {
+  withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  FadeIn,
+  FadeOut,
+} from "react-native-reanimated"
 
 const DropdownMenu = () => {
   const [visible, setVisible] = React.useState(false)
-  const buttonRef = React.useRef(null)
+  const translateY = useSharedValue(-10)
 
   const menuItems: Array<{
     id: number
@@ -18,44 +25,56 @@ const DropdownMenu = () => {
     { id: 4, label: "Logout", icon: "log-out" },
   ]
 
+  const showMenu = () => {
+    setVisible(true)
+    translateY.value = withSpring(0, {
+      mass: 0.3,
+      damping: 15,
+    })
+  }
+
+  const hideMenu = () => {
+    translateY.value = withSpring(-10, {
+      mass: 0.3,
+      damping: 15,
+    })
+    setTimeout(() => setVisible(false), 100)
+  }
+
+  const menuAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }))
+
   return (
     <View style={styles.container}>
-      {/* <Pressable
-        style={styles.trigger}
-        onPress={() => setVisible(true)}
-      >
-        <Text style={styles.triggerText}>Menu</Text>
-        <Feather
-          name="chevron-down"
-          size={18}
-          color="#000"
-        />
-      </Pressable> */}
-
       <RoundBtn
         icon={"ellipsis-horizontal"}
         text={"More"}
-        onPress={() => setVisible(true)}
+        onPress={showMenu}
       />
 
-      <Modal
-        visible={visible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setVisible(false)}
-      >
+      {visible && (
         <Pressable
           style={styles.overlay}
-          onPress={() => setVisible(false)}
+          onPress={(event) => {
+            // Only hide if clicking the overlay itself
+            if (event.target === event.currentTarget) {
+              hideMenu()
+            }
+          }}
         >
-          <View style={styles.dropdownContent}>
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            exiting={FadeOut.duration(100)}
+            style={[styles.dropdownContent, menuAnimatedStyle]}
+          >
             {menuItems.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.menuItem}
                 onPress={() => {
                   console.log(`Selected: ${item.label}`)
-                  setVisible(false)
+                  hideMenu()
                 }}
               >
                 <Feather
@@ -66,9 +85,9 @@ const DropdownMenu = () => {
                 <Text style={styles.menuText}>{item.label}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </Animated.View>
         </Pressable>
-      </Modal>
+      )}
     </View>
   )
 }
@@ -77,40 +96,26 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
   },
-  trigger: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    gap: 8,
-  },
-  triggerText: {
-    fontSize: 14,
-    color: "#000",
-    fontWeight: "500",
-  },
   overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    justifyContent: "center",
-    alignItems: "center",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+    zIndex: 1000,
   },
   dropdownContent: {
+    position: "absolute",
+    top: 50,
+    right: 0,
     width: 220,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 4,
+    borderRadius: 12,
+    padding: 8,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 5,
   },
   menuItem: {
@@ -118,10 +123,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     gap: 8,
-    borderRadius: 4,
+    borderRadius: 8,
+    backgroundColor: "transparent",
   },
   menuText: {
     fontSize: 14,
+    fontWeight: "500",
     color: "#1F2937",
   },
 })

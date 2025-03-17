@@ -3,28 +3,43 @@ import React, { useState } from "react"
 import { useBalanceStore } from "@/store/balance-store"
 import { useTransactionStore } from "@/store/transaction-store"
 
-const BottomSheetContent = () => {
+interface Props {
+  onSuccess?: () => void
+  type: "credit" | "debit"
+}
+
+const BottomSheetContent = ({ onSuccess, type = "credit" }: Props) => {
   const [amount, setAmount] = useState("")
 
-  const { addBalance } = useBalanceStore()
+  const { addBalance, subtractBalance } = useBalanceStore()
   const { addTransaction } = useTransactionStore()
 
-  const handleAdd = () => {
+  const handleTransaction = () => {
     if (!amount) return
 
     const numericAmount = parseFloat(amount)
     if (isNaN(numericAmount)) return
 
-    addBalance(numericAmount)
-
-    // Create new transaction
-    addTransaction({
-      amount: numericAmount,
-      type: "credit",
-      description: "Added money to wallet",
-    })
+    if (type !== "debit") {
+      addBalance(numericAmount)
+      // Create new transaction
+      addTransaction({
+        amount: numericAmount,
+        type: "credit",
+        description: "Added money to wallet",
+      })
+    } else {
+      subtractBalance(numericAmount)
+      // create new transaction
+      addTransaction({
+        amount: numericAmount,
+        type: "debit",
+        description: "debit",
+      })
+    }
 
     setAmount("") // Reset the input after adding
+    onSuccess?.()
   }
 
   return (
@@ -44,7 +59,7 @@ const BottomSheetContent = () => {
       <TouchableOpacity
         disabled={!amount}
         style={[styles.button, !amount && styles.buttonDisabled]}
-        onPress={handleAdd}
+        onPress={handleTransaction}
       >
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>

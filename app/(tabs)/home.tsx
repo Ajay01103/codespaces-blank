@@ -32,6 +32,8 @@ const Home = () => {
 
   // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
+  // Add another ref for debit bottom sheet
+  const debitSheetRef = useRef<BottomSheetModal>(null)
 
   // callbacks
   const handlePresentModalPress = useCallback(() => {
@@ -46,6 +48,11 @@ const Home = () => {
     bottomSheetModalRef.current?.dismiss()
     // Dismiss keyboard if it's open
     Keyboard.dismiss()
+  }, [])
+
+  // Add handler for debit sheet
+  const handleDebitPress = useCallback(() => {
+    debitSheetRef.current?.present()
   }, [])
 
   // Get latest 5 transactions sorted by date
@@ -81,14 +88,14 @@ const Home = () => {
           <View style={styles.actionRow}>
             <RoundBtn
               icon={"add"}
-              text={"Add money"}
+              text={"Add funds"}
               onPress={handlePresentModalPress}
               // onPress={onAddMoney}
             />
             <RoundBtn
-              icon={"refresh"}
-              text={"Exchange"}
-              // onPress={clearTransactions}
+              icon={"remove"}
+              text={"Debit"}
+              onPress={handleDebitPress}
             />
             <RoundBtn
               icon={"card"}
@@ -144,7 +151,32 @@ const Home = () => {
           android_keyboardInputMode="adjustResize"
         >
           <BottomSheetView style={styles.contentContainer}>
-            <BottomSheetContent />
+            <BottomSheetContent
+              type="credit"
+              onSuccess={handleSuccess}
+            />
+
+            {/* Add your bottom sheet content here */}
+          </BottomSheetView>
+        </BottomSheetModal>
+
+        <BottomSheetModal
+          ref={debitSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          onChange={handleSheetChanges}
+          style={styles.bottomSheet}
+          backgroundStyle={styles.bottomSheetBackground}
+          handleIndicatorStyle={styles.bottomSheetIndicator}
+          keyboardBehavior="interactive"
+          keyboardBlurBehavior="restore"
+          android_keyboardInputMode="adjustResize"
+        >
+          <BottomSheetView style={styles.contentContainer}>
+            <BottomSheetContent
+              onSuccess={handleSuccess}
+              type="debit"
+            />
 
             {/* Add your bottom sheet content here */}
           </BottomSheetView>
