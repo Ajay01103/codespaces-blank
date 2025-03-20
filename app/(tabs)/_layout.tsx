@@ -55,7 +55,9 @@ const Layout = () => {
           <Tabs.Screen
             name="invest"
             options={{
-              title: "Invest",
+              // title: "Invest",
+              headerShown: false,
+
               tabBarIcon: ({ size, color }) => (
                 <FontAwesome
                   name="line-chart"
@@ -70,6 +72,7 @@ const Layout = () => {
             name="transfers"
             options={{
               title: "Transfers",
+              headerShown: false,
               tabBarIcon: ({ size, color }) => (
                 <FontAwesome
                   name="exchange"

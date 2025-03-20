@@ -2,12 +2,13 @@ import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-interface Transaction {
+export type Transaction = {
   id: string
   amount: number
   type: "credit" | "debit"
   date: string
   description?: string
+  status: "successful"
 }
 
 interface TransactionStore {
